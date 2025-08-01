@@ -1,0 +1,77 @@
+<?php
+session_start();
+require 'config.php';
+
+if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'student') {
+    header("Location: login.php");
+    exit;
+}
+
+$student_id = $_SESSION['user_id'];
+
+// Βήμα 1: Αν δεν έχει επιλεγεί καθηγητής
+$selected_professor_id = $_GET['professor_id'] ?? null;
+
+// Βήμα 2: Υποβολή αίτησης
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['topic_id'])) {
+    $topic_id = $_POST['topic_id'];
+
+    // Έλεγχος αν υπάρχει ήδη αίτηση για αυτόν τον φοιτητή
+    $check = $pdo->prepare("SELECT id FROM thesis_requests WHERE student_id = ? AND topic_id = ?");
+    $check->execute([$student_id, $topic_id]);
+    if ($check->fetch()) {
+        echo "<p style='color:red;'>Έχεις ήδη υποβάλει αίτηση για αυτό το θέμα.</p>";
+    } else {
+        $stmt = $pdo->prepare("INSERT INTO thesis_requests (student_id, topic_id, status) VALUES (?, ?, 'pending')");
+        $stmt->execute([$student_id, $topic_id]);
+        echo "<p style='color:green;'>Η αίτηση υποβλήθηκε με επιτυχία!</p>";
+    }
+}
+
+// Αν δεν έχει επιλεγεί καθηγητής ακόμα
+if (!$selected_professor_id):
+    $stmt = $pdo->query("SELECT id, name FROM users WHERE role = 'professor'");
+    $professors = $stmt->fetchAll();
+    ?>
+
+    <h2>Επιλέξτε Καθηγητή</h2>
+    <ul>
+        <?php foreach ($professors as $prof): ?>
+            <li>
+                <a href="request_thesis_student.php?professor_id=<?php echo $prof['id']; ?>">
+                    <?php echo htmlspecialchars($prof['name']); ?>
+                </a>
+            </li>
+        <?php endforeach; ?>
+    </ul>
+
+<?php else:
+    // Φόρτωση θεμάτων του καθηγητή
+    $stmt = $pdo->prepare("SELECT t.*, u.name as professor_name FROM topics t JOIN users u ON t.professor_id = u.id WHERE t.professor_id = ?");
+    $stmt->execute([$selected_professor_id]);
+    $topics = $stmt->fetchAll();
+
+    echo "<h2>Θέματα από τον/την " . htmlspecialchars($topics[0]['professor_name'] ?? 'Καθηγητή') . "</h2>";
+
+    if (!$topics) {
+        echo "<p>Δεν υπάρχουν διαθέσιμα θέματα από αυτόν τον καθηγητή.</p>";
+    } else {
+        echo "<form method='post'>";
+        echo "<ul>";
+        foreach ($topics as $topic) {
+            echo "<li>";
+            echo "<strong>" . htmlspecialchars($topic['title']) . "</strong><br>";
+            echo nl2br(htmlspecialchars($topic['description'])) . "<br>";
+            if ($topic['pdf_filename']) {
+                echo "<a href='uploads/" . urlencode($topic['pdf_filename']) . "' target='_blank'>Προβολή PDF</a><br>";
+            }
+            echo "<button type='submit' name='topic_id' value='" . $topic['id'] . "'>Υποβολή Αίτησης</button>";
+            echo "</li><br>";
+        }
+        echo "</ul>";
+        echo "</form>";
+    }
+
+    echo "<p><a href='request_thesis_student.php'>⬅ Επιστροφή στην επιλογή καθηγητή</a></p>";
+endif;
+?>
