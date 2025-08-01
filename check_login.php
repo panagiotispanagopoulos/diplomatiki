@@ -1,3 +1,4 @@
+// check_login
 <?php
 session_start();
 require 'config.php';
