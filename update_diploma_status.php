@@ -1,3 +1,4 @@
+// update_diploma_status
 <?php
 session_start();
 require 'config.php';

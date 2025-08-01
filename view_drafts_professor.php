@@ -1,3 +1,4 @@
+view_drafts_professor
 <?php
 session_start();
 require 'config.php';

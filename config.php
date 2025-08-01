@@ -1,3 +1,4 @@
+// config
 <?php
 $host = 'localhost';
 $db   = 'diplomatiki_db';

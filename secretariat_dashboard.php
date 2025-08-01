@@ -1,3 +1,4 @@
+// secretariat_dashboard
 <?php
 session_start();
 require 'config.php';
