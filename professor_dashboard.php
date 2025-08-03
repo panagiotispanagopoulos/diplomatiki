@@ -1,4 +1,3 @@
-// professor_dashboard
 <?php
 session_start();
 require 'config.php';
@@ -58,6 +57,15 @@ $stmt = $pdo->prepare("
 ");
 $stmt->execute([$professor_id]);
 $assigned = $stmt->fetchAll();
+
+// Μετρητής εκκρεμών αιτημάτων
+$stmt = $pdo->prepare("
+    SELECT COUNT(*) FROM thesis_requests tr
+    JOIN topics t ON tr.topic_id = t.id
+    WHERE t.professor_id = ? AND tr.status = 'pending'
+");
+$stmt->execute([$professor_id]);
+$request_count = $stmt->fetchColumn();
 ?>
 
 <!DOCTYPE html>
@@ -66,12 +74,31 @@ $assigned = $stmt->fetchAll();
     <meta charset="UTF-8">
     <title>Καθηγητής - Dashboard</title>
     <style>
-        body { font-family: Arial; }
+        body { font-family: Arial; margin: 20px; }
         table { border-collapse: collapse; width: 100%; margin-top: 15px; }
         th, td { border: 1px solid #aaa; padding: 8px; text-align: left; }
         th { background-color: #f0f0f0; }
         .hidden { display: none; }
         .toggle-btn { cursor: pointer; background: #e0e0e0; padding: 6px 12px; border: 1px solid #ccc; border-radius: 4px; }
+        .btn-link {
+            background-color: #007BFF;
+            color: white;
+            padding: 8px 16px;
+            text-decoration: none;
+            border-radius: 5px;
+            display: inline-block;
+        }
+        .btn-link:hover {
+            background-color: #0056b3;
+        }
+        .badge {
+            background-color: red;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            margin-left: 5px;
+        }
     </style>
     <script>
         function toggle(id) {
@@ -87,6 +114,17 @@ $assigned = $stmt->fetchAll();
 </p>
 
 <h1>Καλωσόρισες, <?php echo htmlspecialchars($professor_name); ?>!</h1>
+
+<!-- 🔔 Ειδοποιήσεις / Αιτήματα -->
+<h2>📨 Αιτήματα Φοιτητών</h2>
+<p>
+    <a class="btn-link" href="manage_requests_professor.php">
+        Προβολή Αιτημάτων Ανάθεσης
+        <?php if ($request_count > 0): ?>
+            <span class="badge"><?php echo $request_count; ?></span>
+        <?php endif; ?>
+    </a>
+</p>
 
 <!-- Προφίλ -->
 <h2>Το Προφίλ σας</h2>
