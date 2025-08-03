@@ -41,6 +41,8 @@ function formatDateDiff($startDate) {
 
 <h1>Καλώς ήρθες, <?php echo htmlspecialchars($_SESSION['user_name']); ?>!</h1>
 
+<p><a href="messages.php">📩 Επικοινωνία με καθηγητή</a></p>
+
 <!-- Προβολή Θέματος -->
 <h2>Η Διπλωματική σου</h2>
 <?php if (!$thesis): ?>
