@@ -114,6 +114,7 @@ $request_count = $stmt->fetchColumn();
 </p>
 
 <h1>Καλωσόρισες, <?php echo htmlspecialchars($professor_name); ?>!</h1>
+<p><a class="btn-link" href="messages.php">📩 Μηνύματα με φοιτητή</a></p>
 
 <!-- 🔔 Ειδοποιήσεις / Αιτήματα -->
 <h2>📨 Αιτήματα Φοιτητών</h2>
